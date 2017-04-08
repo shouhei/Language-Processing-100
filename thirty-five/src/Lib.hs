@@ -7,12 +7,13 @@ import Data.Maybe
 import Text.MeCab
 import qualified Data.Map as Map
 import Text.Regex.PCRE.Heavy
+import Debug.Trace
 
 maxLength x y
   | (length x) > y = do
-    let n = length $ takeWhile (\z -> "名詞" == fromJust (Map.lookup "base" z)) x
-    let c = (max n 1)
-    maxLength (drop c x) (max n y)
+      let n = length $ takeWhile (\z -> "名詞" == fromJust (Map.lookup "pos" z)) x
+      let c = (max n 1)
+      maxLength (drop c x) (max n y)
   | otherwise = y
 
 makeMecabMap [] = [Map.fromList [("surface", ""), ("base", ""), ("pos", ""), ("pos1", "")]]
