@@ -8,13 +8,14 @@ import Data.Maybe
 import Text.MeCab
 import qualified Data.Map as Map
 import Text.Regex.PCRE.Heavy
+import Graphics.Gnuplot.Simple
 
 base x = (fromJust (Map.lookup "base" x))
 
 frequency (_:[]) = [("", 0)]
 frequency (x:xs) = do
   let tmp = filter (\y -> (base x) == (base y)) xs
-  (base x, length(tmp)): frequency (filter (\y -> (base x) /= (base y)) xs)
+  (base x, length(tmp)+1): frequency (filter (\y -> (base x) /= (base y)) xs)
 
 makeMecabMap [] = [Map.fromList [("surface", ""), ("base", ""), ("pos", ""), ("pos1", "")]]
 makeMecabMap (x:xs) = do
@@ -28,4 +29,5 @@ someFunc = do
     mecab  <- new2 ""
     result <- parse mecab text
     let l = makeMecabMap $ init $ lines result
-    print $ sortBy (\x y-> compare (snd x) (snd y)) (frequency l)
+    let tmp = take 10 $ sortBy (\x y-> compare (snd y) (snd x)) (frequency l)
+    print $ tmp
