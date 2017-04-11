@@ -29,5 +29,6 @@ someFunc = do
     mecab  <- new2 ""
     result <- parse mecab text
     let l = makeMecabMap $ init $ lines result
-    let tmp = take 10 $ sortBy (\x y-> compare (snd y) (snd x)) (frequency l)
-    print $ tmp
+    let tmp = zip [1..] (map (\x -> snd x) $ take 10 $ sortBy (\x y-> compare (snd y) (snd x)) (frequency l))
+    print tmp
+    plotPathStyle [(Title "Frequency")] (defaultStyle{plotType = Boxes }) tmp
