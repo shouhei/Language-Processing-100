@@ -23,12 +23,22 @@ makeMecabMap (x:xs) = do
   let m = Map.fromList [("surface", l !! 0),("base", l !! 7), ("pos", l !! 1), ("pos1", l !! 2)]
   m : makeMecabMap xs
 
+topTen l =
+  take 10 $ sortBy (\x y-> compare (snd y) (snd x)) $ frequency l
+
+makeData l =
+  zip [0..] (map (\x -> snd x) $ topTen l)
+
+makeLabel l = do
+  let w = map (\x -> fst x) (topTen l)
+  let t = zip w [0..]
+  let text = init $ unwords $ map (\x -> "'" ++ (fst x) ++ "'" ++ (show (snd x)) ++ ",") t
+  "(" ++ text ++ ")"
+
 someFunc :: IO ()
 someFunc = do
-    text <- readFile "neko.txt"
-    mecab  <- new2 ""
-    result <- parse mecab text
-    let l = makeMecabMap $ init $ lines result
-    let tmp = zip [1..] (map (\x -> snd x) $ take 10 $ sortBy (\x y-> compare (snd y) (snd x)) (frequency l))
-    print tmp
-    plotPathStyle [(Title "Frequency")] (defaultStyle{plotType = Boxes }) tmp
+  text <- readFile "neko.txt"
+  mecab  <- new2 ""
+  result <- parse mecab text
+  let l = makeMecabMap $ init $ lines result
+  plotPathStyle [(Title "Frequency"), (XTicks (Just [(makeLabel l)]))] (defaultStyle{plotType = Boxes }) $ makeData l
