@@ -29,10 +29,17 @@ makeFrequencyList (x:xs) = do
   let num = length $ filter (\y -> (snd x) == (snd y)) xs
   ((snd x), num + 1): (makeFrequencyList (filter (\y -> (snd x) /= (snd y)) xs))
 
+makeLabel l = do
+  let w = map (\x -> fst x) l
+  let t = zip w [0..]
+  let text = init $ unwords $ map (\x -> "'" ++ (show (fst x)) ++ "'" ++ (show (snd x)) ++ ",") t
+  "(" ++ text ++ ")"
+
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   mecab  <- new2 ""
   result <- parse mecab text
   let l = makeMecabMap $ init $ lines result
-  plotPathStyle [(Title "Frequency")] (defaultStyle{plotType = Boxes }) $ sortBy (\x y-> compare (fst y) (fst x)) $ makeFrequencyList (frequency l)
+  let f = makeFrequencyList (frequency l)
+  plotPathStyle [(Title "Frequency"), (XTicks (Just [makeLabel f]))] (defaultStyle{plotType = Boxes }) $ sortBy (\x y-> compare (fst y) (fst x)) $ (zip [0..] (map (\x -> fst x) f))
