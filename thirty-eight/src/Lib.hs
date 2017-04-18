@@ -41,5 +41,5 @@ someFunc = do
   mecab  <- new2 ""
   result <- parse mecab text
   let l = makeMecabMap $ init $ lines result
-  let f = makeFrequencyList (frequency l)
-  plotPathStyle [(Title "Frequency"), (XTicks (Just [makeLabel f]))] (defaultStyle{plotType = Boxes }) $ sortBy (\x y-> compare (fst y) (fst x)) $ (zip [0..] (map (\x -> fst x) f))
+  let f =  makeFrequencyList $ sortBy (\x y-> compare (fst y) (fst x)) (frequency l)
+  plotPathStyle [(Title "Frequency"), (XTicks (Just [makeLabel f]))] (defaultStyle{plotType = Boxes })  $ (zip [0..] (map (\x -> fst x) f))
