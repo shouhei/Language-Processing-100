@@ -1,0 +1,15 @@
+flags: {}
+extra-include-dirs:
+- /usr/local/Cellar/mecab/0.996/include/
+extra-lib-dirs:
+- /usr/local/Cellar/mecab/0.996/lib/
+packages:
+- '.'
+- location:
+    git: https://github.com/morishin/hsmecab.git
+    commit: 2da6677fbd42bb77d3b6e61c02edfeebe248e184
+extra-deps:
+- data-accessor-transformers-0.2.1.6
+- gnuplot-0.5.4
+- utility-ht-0.0.11
+resolver: lts-3.13
