@@ -29,12 +29,12 @@ makeMecabMap (x:xs) = do
   m : makeMecabMap xs
 
 
-logify l = map (\x -> show (log (fromIntegral x)::Float)) l
+logify l = map (\x -> log (fromIntegral x)::Float) l
 
 {--
 [(順位, 頻度)]
 --}
-makeRank l = zip (logify [1..]) (logify (map (\x -> snd x) (sortBy (\x y-> compare (snd (x)) (snd y)) l)))
+makeRank l = zip (logify [1..]) (logify (map (\x -> snd x) (sortBy (\x y-> compare (snd y) (snd x)) l)))
 
 
 someFunc :: IO ()
@@ -42,5 +42,4 @@ someFunc = do
   text <- readFile "neko.txt"
   mecab  <- new2 ""
   result <- parse mecab text
-  print (makeRank $ frequency $ makeMecabMap $ init $ lines $ result)
-  {--plotPath [(Title "Log-Log")] (makeRank $ frequency $ makeMecabMap $ init $ lines $ result)--}
+  plotPath [(Title "Log-Log")] (makeRank $ frequency $ makeMecabMap $ init $ lines $ result)
