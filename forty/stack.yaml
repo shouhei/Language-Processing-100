@@ -1,0 +1,12 @@
+flags: {}
+packages:
+- '.'
+- location:
+    git: git@github.com:shouhei/hscabocha.git
+    commit: 0347467eca7fb63e3b1a88dea61b6e0805dd2186
+extra-deps: []
+extra-include-dirs:
+  - /usr/local/Cellar/cabocha/0.69/include
+extra-lib-dirs:
+  - /usr/local/Cellar/cabocha/0.69/lib/
+resolver: lts-3.13
