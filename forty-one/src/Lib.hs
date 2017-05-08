@@ -10,9 +10,6 @@ import qualified Data.List.Split as LS
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::Int} deriving Show
 
-makeMorphStr :: Morph -> String
-makeMorphStr x = "surface: " ++ (surface x) ++ ", base: " ++ (base x) ++ ", pos: " ++ (pos x) ++ ", pos1: " ++ (pos1 x)
-
 makeMorphList :: [String] -> [Morph]
 makeMorphList [] = []
 makeMorphList (x:xs) = do
@@ -29,7 +26,7 @@ figureToSentence :: [String] -> [[String]]
 figureToSentence [] = []
 figureToSentence (x:xs) = do
   let base = break (\y -> (y !! 0) == '*') xs
-  [x:(fst base)]
+  [x:(fst base)] ++ figureToSentence (snd base)
 
 makeChunk :: [String] -> Chunk
 makeChunk x = do
@@ -37,16 +34,16 @@ makeChunk x = do
   let m = makeMorphList $ tail x
   Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=0}
 
-makeChunkList :: [String] -> [Chunk]
+makeChunkList :: [String] -> [[Chunk]]
 makeChunkList [] = []
 makeChunkList (x:xs) = do
   {--文のlistにする--}
   {--([[Char]], [[Char]])--}
-  let z = break (\y -> y !! 0 == '*' && (y !! 2 == '0')) $ xs
+  let z = break (\y -> (y !! 0 == '*') && (y !! 2 == '0')) xs
   {--文のlistを分節にする--}
   let s = figureToSentence $ x:(fst z)
   {--文節のlistを単語に分割する--}
-  map makeChunk s
+  [(map makeChunk s)] ++ makeChunkList (snd z)
 
 someFunc :: IO ()
 someFunc = do
@@ -56,19 +53,6 @@ someFunc = do
   {--[[Char]]--}
   let l = lines result
   let chunks = makeChunkList l
-  putStrLn $ surface $ (morphs (chunks !! 0)) !! 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  print $ chunks !! 0
+  {--putStrLn $ surface $ (morphs ((chunks !! 0) !! 0)) !! 0--}
 
