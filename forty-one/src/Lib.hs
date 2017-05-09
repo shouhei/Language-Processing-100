@@ -14,7 +14,10 @@ makeMorphList :: [String] -> [Morph]
 makeMorphList [] = []
 makeMorphList (x:xs) = do
   let l = split [re|(\t|,)|] x
-  Morph {surface = l !! 0, base = l !! 7, pos = l !! 1, pos1 = l !! 2 } : makeMorphList xs
+  if (length l) < 7 then
+        makeMorphList xs
+  else
+      Morph {surface = (l !! 0), base = (l !! 7), pos = (l !! 1), pos1 = (l !! 2) } : makeMorphList xs
 
 dstToInt :: String -> Int
 dstToInt x
@@ -34,25 +37,9 @@ makeChunk x = do
   let m = makeMorphList $ tail x
   Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=0}
 
-makeChunkList :: [String] -> [[Chunk]]
-makeChunkList [] = []
-makeChunkList (x:xs) = do
-  {--文のlistにする--}
-  {--([[Char]], [[Char]])--}
-  let z = break (\y -> (y !! 0 == '*') && (y !! 2 == '0')) xs
-  {--文のlistを分節にする--}
-  let s = figureToSentence $ x:(fst z)
-  {--文節のlistを単語に分割する--}
-  [(map makeChunk s)] ++ makeChunkList (snd z)
-
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
-  result <- CaboCha.parse cabocha text
-  {--[[Char]]--}
-  let l = lines result
-  let chunks = makeChunkList l
-  print $ chunks !! 0
-  {--putStrLn $ surface $ (morphs ((chunks !! 0) !! 0)) !! 0--}
-
+  chunks <- CaboCha.parse cabocha $ (lines text) !! 7
+  putStrLn $ surface ((morphs (makeChunk $ lines chunks)) !! 0)
