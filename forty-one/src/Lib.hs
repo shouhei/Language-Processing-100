@@ -24,13 +24,6 @@ dstToInt x
   | (x !! 0) == '-' = -1
   | otherwise       = read $ init x
 
-
-figureToSentence :: [String] -> [[String]]
-figureToSentence [] = []
-figureToSentence (x:xs) = do
-  let base = break (\y -> (y !! 0) == '*') xs
-  [x:(fst base)] ++ figureToSentence (snd base)
-
 makeChunk :: [String] -> Chunk
 makeChunk x = do
   let c = words $ x !! 0
