@@ -41,5 +41,5 @@ someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
-  chunks <- CaboCha.parse cabocha $ (lines text) !! 7
-  putStrLn $ surface ((morphs (makeChunk $ lines chunks)) !! 0)
+  chunks <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
+  putStrLn $ surface ((morphs (makeChunk $ lines (chunks !! 7))) !! 0)
