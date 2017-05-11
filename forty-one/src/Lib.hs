@@ -5,7 +5,6 @@ module Lib
 
 import qualified Text.CaboCha as CaboCha
 import Text.Regex.PCRE.Heavy
-import qualified Data.List.Split as LS
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::Int} deriving Show
@@ -41,5 +40,6 @@ someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
-  chunks <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  putStrLn $ surface ((morphs (makeChunk $ lines (chunks !! 7))) !! 0)
+  c <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
+  let chunks = map makeChunk (map lines c)
+  putStrLn $ surface ((morphs (chunks !! 7)) !! 0)
