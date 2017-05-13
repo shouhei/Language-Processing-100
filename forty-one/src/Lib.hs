@@ -5,10 +5,11 @@ module Lib
 
 import qualified Text.CaboCha as CaboCha
 import Text.Regex.PCRE.Heavy
+import Data.List
 import qualified Data.List.Split as LS
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
-data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::Int} deriving Show
+data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::[Int]} deriving Show
 
 makeMorphList :: [String] -> [Morph]
 makeMorphList [] = []
@@ -24,15 +25,29 @@ dstToInt x
   | (x !! 0) == '-' = -1
   | otherwise       = read $ init x
 
-makeChunk :: [String] -> Chunk
-makeChunk x = do
+dstToSrc :: [Int] -> [[Int]]
+dstToSrc x = map (\y -> elemIndices y x) [0..]
+
+{--makeChunks :: [String] -> [[Chunk]]
+makeChunks [] = []
+makeChunks (x:xs) = do
+  let metas = map (\y -> (y !! 4)) $ filter (\y -> (y !! 0) == '*' ) $ lines x
+  let m = map (\y -> read y) metas
+  let morphLines = LS.splitWhen (\y -> y !! 0 == '*') $ lines x
+  (map (\y -> makeChunk (fst y) (snd y)) $ zip morphLines (dstToSrc metas) )--}
+
+makeChunk :: [String] -> [Int] -> Chunk
+makeChunk x y = do
   let c = words $ x !! 0
   let m = makeMorphList $ tail x
-  Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=0}
+  Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=y}
 
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
-  chunks <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  putStrLn $ surface ((morphs (makeChunk $ lines (chunks !! 7))) !! 0)
+  chunkStr <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
+  mapM_ print $ dstToSrc $ map (\x -> dstToInt ((words x) !! 2)) $ filter (\x -> x !! 0 == '*') $ lines $ chunkStr !! 7
+  {--let chunks = makeChunks chunkStr
+  print $ chunks !! 7
+  putStrLn $ surface (morphs ((chunks !! 7)!!0) !! 0)--}
