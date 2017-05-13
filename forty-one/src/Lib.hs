@@ -26,20 +26,19 @@ dstToInt x
   | otherwise       = read $ init x
 
 dstToSrc :: [Int] -> [[Int]]
-dstToSrc x = map (\y -> elemIndices y x) [0..]
+dstToSrc x = map (\y -> elemIndices y x) [0..(length x)]
 
-{--makeChunks :: [String] -> [[Chunk]]
+makeChunks :: [String] -> [[Chunk]]
 makeChunks [] = []
 makeChunks (x:xs) = do
-  let metas = map (\y -> (y !! 4)) $ filter (\y -> (y !! 0) == '*' ) $ lines x
-  let m = map (\y -> read y) metas
-  let morphLines = LS.splitWhen (\y -> y !! 0 == '*') $ lines x
-  (map (\y -> makeChunk (fst y) (snd y)) $ zip morphLines (dstToSrc metas) )--}
+  let metas = dstToSrc $ map (\y -> dstToInt ((words y) !! 2)) $ filter (\y -> y !! 0 == '*') $ lines $ x
+  let morphLines = tail $ LS.splitWhen (\y -> y !! 0 == '*') $ lines x
+  (map (\y -> makeChunk ((lines x) !! 0) (fst y) (snd y)) $ zip morphLines metas): (makeChunks xs)
 
-makeChunk :: [String] -> [Int] -> Chunk
-makeChunk x y = do
-  let c = words $ x !! 0
-  let m = makeMorphList $ tail x
+makeChunk :: String -> [String] -> [Int] -> Chunk
+makeChunk initialLine x y = do
+  let c = words initialLine
+  let m = makeMorphList $ x
   Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=y}
 
 someFunc :: IO ()
@@ -47,7 +46,5 @@ someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunkStr <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ print $ dstToSrc $ map (\x -> dstToInt ((words x) !! 2)) $ filter (\x -> x !! 0 == '*') $ lines $ chunkStr !! 7
-  {--let chunks = makeChunks chunkStr
-  print $ chunks !! 7
-  putStrLn $ surface (morphs ((chunks !! 7)!!0) !! 0)--}
+  let chunks = makeChunks chunkStr
+  print $ chunks !! 0
