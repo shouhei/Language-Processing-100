@@ -7,6 +7,7 @@ import qualified Text.CaboCha as CaboCha
 import Text.Regex.PCRE.Heavy
 import Data.List
 import qualified Data.List.Split as LS
+import Debug.Trace
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::[Int]} deriving Show
@@ -44,12 +45,23 @@ dstToSrc x = map (\y -> elemIndices y x) [0..(length x)]
 metaToDst :: String -> Int
 metaToDst x = dstToInt  $ (words x) !! 2
 
+makeTuple [] _ _ = []
+makeTuple _ [] _ = []
+makeTuple _ _ [] = []
+makeTuple (x:xs) (y:ys) (z:zs) = do
+  (x, y, z): makeTuple xs ys zs
+
+tToChunk x = do
+  let (a,b,c) = x
+  makeChunk a (metaToDst b) c
+
 makeChunks :: [String] -> [[Chunk]]
 makeChunks [] = []
 makeChunks (x:xs) = do
   let metas = dstToSrc $ map (\y -> dstToInt ((words y) !! 2)) $ filter (\y -> y !! 0 == '*') $ lines $ x
   let morphLines = tail $ LS.splitWhen (\y -> y !! 0 == '*') $ lines x
-  (map (\y -> makeChunk (fst y) (metaToDst ((lines x) !! 0)) (snd y)) $ zip morphLines metas): (makeChunks xs)
+  map tToChunk (makeTuple morphLines (filter (\y -> y !! 0 == '*') $ lines $ x) metas)
+    : (makeChunks xs)
 
 makeChunk :: [String] -> Int -> [Int] -> Chunk
 makeChunk x y z = do
