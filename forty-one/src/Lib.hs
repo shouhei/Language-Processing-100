@@ -28,18 +28,21 @@ dstToInt x
 dstToSrc :: [Int] -> [[Int]]
 dstToSrc x = map (\y -> elemIndices y x) [0..(length x)]
 
+metaToDst :: String -> Int
+metaToDst x = do
+  dstToInt  $ (words x) !! 2
+
 makeChunks :: [String] -> [[Chunk]]
 makeChunks [] = []
 makeChunks (x:xs) = do
   let metas = dstToSrc $ map (\y -> dstToInt ((words y) !! 2)) $ filter (\y -> y !! 0 == '*') $ lines $ x
   let morphLines = tail $ LS.splitWhen (\y -> y !! 0 == '*') $ lines x
-  (map (\y -> makeChunk ((lines x) !! 0) (fst y) (snd y)) $ zip morphLines metas): (makeChunks xs)
+  (map (\y -> makeChunk (fst y) (metaToDst ((lines x) !! 0)) (snd y)) $ zip morphLines metas): (makeChunks xs)
 
-makeChunk :: String -> [String] -> [Int] -> Chunk
-makeChunk initialLine x y = do
-  let c = words initialLine
+makeChunk :: [String] -> Int -> [Int] -> Chunk
+makeChunk x y z = do
   let m = makeMorphList $ x
-  Chunk{morphs=m, dst=(dstToInt (c !! 2)), srcs=y}
+  Chunk{morphs=m, dst=y, srcs=z}
 
 someFunc :: IO ()
 someFunc = do
@@ -47,4 +50,4 @@ someFunc = do
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunkStr <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
   let chunks = makeChunks chunkStr
-  print $ chunks !! 0
+  putStrLn $ surface $ morphs ((chunks !! 7) !! 0) !! 0
