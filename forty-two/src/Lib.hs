@@ -7,7 +7,7 @@ import qualified Text.CaboCha as CaboCha
 import Text.Regex.PCRE.Heavy
 import Data.List
 import qualified Data.List.Split as LS
-import Debug.Trace
+import Control.Applicative hiding ((<$>))
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::[Int]} deriving Show
@@ -77,6 +77,5 @@ someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
-  chunkStr <- mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  let chunks = makeChunks chunkStr
+  chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
   mapM_ printChunkWithDst chunks
