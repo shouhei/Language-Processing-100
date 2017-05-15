@@ -29,7 +29,7 @@ makeMorphList :: [String] -> [Morph]
 makeMorphList [] = []
 makeMorphList (x:xs) = do
   let l = split [re|(\t|,)|] x
-  if ((length l) < 7)  then
+  if ((length l) < 7) || (l !! 1) == "記号" then
         makeMorphList xs
   else
       Morph {surface = (l !! 0), base = (l !! 7), pos = (l !! 1), pos1 = (l !! 2) } : makeMorphList xs
@@ -60,8 +60,7 @@ makeChunks [] = []
 makeChunks (x:xs) = do
   let metas = dstToSrc $ map (\y -> dstToInt ((words y) !! 2)) $ filter (\y -> y !! 0 == '*') $ lines $ x
   let morphLines = tail $ LS.splitWhen (\y -> y !! 0 == '*') $ lines x
-  map tToChunk (makeTuple morphLines (filter (\y -> y !! 0 == '*') $ lines $ x) metas)
-    : (makeChunks xs)
+  map tToChunk (makeTuple morphLines (filter (\y -> y !! 0 == '*') $ lines $ x) metas) : (makeChunks xs)
 
 makeChunk :: [String] -> Int -> [Int] -> Chunk
 makeChunk x y z = do
@@ -72,7 +71,7 @@ printChunkWithDst :: [Chunk] -> IO()
 printChunkWithDst x = do
   let bases = map chunkToStr x
   let dsts = chunkDstsToStr x
-  mapM_ putStrLn $ map (\y -> (fst y) ++ "\t" ++(snd y)) $ zip bases dsts
+  mapM_ putStrLn $ map (\y -> (fst y) ++ "\t" ++(snd y)) $ filter (\y -> (fst y) /= "" && (snd y) /= "") $ zip bases dsts
 
 someFunc :: IO ()
 someFunc = do
