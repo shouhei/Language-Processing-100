@@ -1,6 +1,15 @@
 {-# LANGUAGE OverloadedStrings, QuasiQuotes, FlexibleContexts, DeriveGeneric, ScopedTypeVariables #-}
 module Lib
-    ( someFunc
+    ( someFunc,
+      dstToInt,
+      dstToSrc,
+      metaToDst,
+      makeTuples,
+      makeMorphList,
+      makeChunk,
+      makeChunks,
+      Morph(..),
+      Chunk(..)
     ) where
 
 import qualified Text.CaboCha as CaboCha
@@ -10,6 +19,9 @@ import qualified Data.List.Split as LS
 import Control.Applicative hiding ((<$>))
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
+instance Eq Morph where
+    (Morph w x y z) == (Morph w' x' y' z') = w == w' && x == x' && y == y' && z == z'
+
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::[Int]} deriving Show
 
 chunkToStr :: Chunk -> String
@@ -45,11 +57,11 @@ dstToSrc x = map (\y -> elemIndices y x) [0..(length x)]
 metaToDst :: String -> Int
 metaToDst x = dstToInt  $ (words x) !! 2
 
-makeTuple [] _ _ = []
-makeTuple _ [] _ = []
-makeTuple _ _ [] = []
-makeTuple (x:xs) (y:ys) (z:zs) = do
-  (x, y, z): makeTuple xs ys zs
+makeTuples [] _ _ = []
+makeTuples _ [] _ = []
+makeTuples _ _ [] = []
+makeTuples (x:xs) (y:ys) (z:zs) = do
+  (x, y, z): makeTuples xs ys zs
 
 tToChunk x = do
   let (a,b,c) = x
@@ -60,7 +72,7 @@ makeChunks [] = []
 makeChunks (x:xs) = do
   let metas = dstToSrc $ map (\y -> dstToInt ((words y) !! 2)) $ filter (\y -> y !! 0 == '*') $ lines $ x
   let morphLines = tail $ LS.splitWhen (\y -> y !! 0 == '*') $ lines x
-  map tToChunk (makeTuple morphLines (filter (\y -> y !! 0 == '*') $ lines $ x) metas) : (makeChunks xs)
+  map tToChunk (makeTuples morphLines (filter (\y -> y !! 0 == '*') $ lines $ x) metas) : (makeChunks xs)
 
 makeChunk :: [String] -> Int -> [Int] -> Chunk
 makeChunk x y z = do
