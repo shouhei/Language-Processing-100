@@ -8,6 +8,7 @@ module Lib
       makeMorphList,
       makeChunk,
       makeChunks,
+      makeChunkWithDstStr,
       Morph(..),
       Chunk(..)
     ) where
@@ -23,6 +24,8 @@ instance Eq Morph where
     (Morph w x y z) == (Morph w' x' y' z') = w == w' && x == x' && y == y' && z == z'
 
 data Chunk = Chunk { morphs::[Morph], dst::Int, srcs::[Int]} deriving Show
+instance Eq Chunk where
+    (Chunk x y z) == (Chunk x' y' z') = x == x' && y == y' && z == z'
 
 chunkToStr :: Chunk -> String
 chunkToStr x = foldl (\y z -> y ++ (surface z)) "" (morphs x)
@@ -79,15 +82,15 @@ makeChunk x y z = do
   let m = makeMorphList $ x
   Chunk{morphs=m, dst=y, srcs=z}
 
-printChunkWithDst :: [Chunk] -> IO()
-printChunkWithDst x = do
+makeChunkWithDstStr :: [Chunk] -> [String]
+makeChunkWithDstStr x = do
   let bases = map chunkToStr x
   let dsts = chunkDstsToStr x
-  mapM_ putStrLn $ map (\y -> (fst y) ++ "\t" ++(snd y)) $ filter (\y -> (fst y) /= "" && (snd y) /= "") $ zip bases dsts
+  map (\y -> (fst y) ++ "\t" ++(snd y)) $ filter (\y -> (fst y) /= "" && (snd y) /= "") $ zip bases dsts
 
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ printChunkWithDst chunks
+  mapM_ (\x -> mapM_ putStrLn x) $ map makeChunkWithDstStr chunks

@@ -31,9 +31,20 @@ specMetaToDst = do
 specMakeMorphList :: Spec
 specMakeMorphList = do
   describe "makeMorphList" $ do
-    it "standard"$ do
+    it "standard" $ do
       makeMorphList ["見当\t名詞,サ変接続,*,*,*,*,見当,ケントウ,ケントー","が\t助詞,格助詞,一般,*,*,*,が,ガ,ガ"] `shouldBe` [Morph{surface="見当", base="見当", pos="名詞", pos1="サ変接続"}, Morph{surface="が", base="が", pos="助詞", pos1="格助詞"}]
 
+specMakeChunk :: Spec
+specMakeChunk = do
+  describe "makeChunk" $ do
+    it "standard" $ do
+      makeChunk ["見当\t名詞,サ変接続,*,*,*,*,見当,ケントウ,ケントー"] 1 [2,3] `shouldBe` Chunk{morphs=[Morph{surface="見当", base="見当", pos="名詞", pos1="サ変接続"}], dst=1, srcs=[2,3]}
+
+specMakeChunkWithDstStr :: Spec
+specMakeChunkWithDstStr = do
+  describe "makeChunkWithDstStr" $ do
+    it "standard" $ do
+      makeChunkWithDstStr [Chunk{morphs=[Morph{surface="見当", base="見当", pos="名詞", pos1="サ変接続"}], dst=1, srcs=[2,3]},Chunk{morphs=[Morph{surface="見当", base="見当", pos="名詞", pos1="サ変接続"}], dst=(-1), srcs=[2,3]}]`shouldBe` ["見当\t見当"]
 
 main :: IO ()
 main = hspec $ do
@@ -42,3 +53,5 @@ main = hspec $ do
   specDstToSrc
   specMetaToDst
   specMakeMorphList
+  specMakeChunk
+  specMakeChunkWithDstStr
