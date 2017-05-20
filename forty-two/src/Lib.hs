@@ -18,6 +18,7 @@ import Text.Regex.PCRE.Heavy
 import Data.List
 import qualified Data.List.Split as LS
 import Control.Applicative hiding ((<$>))
+import Data.Maybe
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 instance Eq Morph where
@@ -88,9 +89,23 @@ makeChunkWithDstStr x = do
   let dsts = chunkDstsToStr x
   map (\y -> (fst y) ++ "\t" ++(snd y)) $ filter (\y -> (fst y) /= "" && (snd y) /= "") $ zip bases dsts
 
+hasNoun :: Chunk -> Bool
+hasNoun x = any (\y -> (pos y) == "名詞") (morphs x)
+
+hasVerb :: Chunk -> Bool
+hasVerb x = any (\y -> (pos y) == "動詞") (morphs x)
+
+tmp :: Chunk -> [Chunk] -> Maybe String
+tmp x origin
+  | (dst x) /= -1 && hasNoun x && hasVerb (origin !! (dst x)) = Just $ (chunkToStr x) ++ "\t" ++ chunkToStr (origin !! (dst x))
+  | otherwise = Nothing
+
+makeStringNounPertainingVerb :: [Chunk] -> [String]
+makeStringNounPertainingVerb x = map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp y x) x
+
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ (\x -> mapM_ putStrLn x) $ map makeChunkWithDstStr chunks
+  mapM_ (\x -> mapM_ putStrLn x) $ map makeStringNounPertainingVerb chunks
