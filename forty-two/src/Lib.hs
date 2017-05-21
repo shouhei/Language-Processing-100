@@ -97,15 +97,24 @@ hasVerb x = any (\y -> (pos y) == "動詞") (morphs x)
 
 tmp :: Chunk -> [Chunk] -> Maybe String
 tmp x origin
-  | (dst x) /= -1 && hasNoun x && hasVerb (origin !! (dst x)) = Just $ (chunkToStr x) ++ "\t" ++ chunkToStr (origin !! (dst x))
+  | (dst x) /= -1 && hasNoun x && hasVerb (origin !! (dst x)) = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
   | otherwise = Nothing
 
 makeStringNounPertainingVerb :: [Chunk] -> [String]
-makeStringNounPertainingVerb x = map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp y x) x
+makeStringNounPertainingVerb x = ["digraph g{"] ++ (map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp y x) x) ++ ["}"]
+
+tmp' :: Chunk -> [Chunk] -> Maybe String
+tmp' x origin
+  | (dst x) /= -1 = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
+  | otherwise = Nothing
+
+makeDiagraph :: [Chunk] -> [String]
+makeDiagraph x = ["digraph g{"] ++ (map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp' y x) x) ++ ["}"]
+
 
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ (\x -> mapM_ putStrLn x) $ map makeStringNounPertainingVerb chunks
+  mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks
