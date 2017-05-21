@@ -105,7 +105,7 @@ makeStringNounPertainingVerb x = ["digraph g{"] ++ (map (\y -> fromJust y) $ fil
 
 tmp' :: Chunk -> [Chunk] -> Maybe String
 tmp' x origin
-  | (dst x) /= -1 = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
+  | (dst x) /= -1 && not (null (morphs x)) = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
   | otherwise = Nothing
 
 makeDiagraph :: [Chunk] -> [String]
