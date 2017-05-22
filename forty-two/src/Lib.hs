@@ -112,9 +112,35 @@ makeDiagraph :: [Chunk] -> [String]
 makeDiagraph x = ["digraph g{"] ++ (map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp' y x) x) ++ ["}"]
 
 
+getSrcChunks :: [Chunk] -> [Int] -> [Chunk]
+getSrcChunks _ [] = []
+getSrcChunks x (y:ys) = x !! y : getSrcChunks x ys
+
+getVerbFromMorphs :: Chunk -> Morph
+getVerbFromMorphs x = fromJust $ find (\y -> pos y == "動詞") $ morphs x
+
+getPostpositionalParticle :: Chunk -> String
+getPostpositionalParticle x = do
+  let morph = find (\y -> pos y == "助詞") $ morphs x
+  if isJust morph  then
+    base $ fromJust morph
+  else
+    ""
+
+makeVerbPPPair :: Chunk -> [Chunk] -> String
+makeVerbPPPair x y = do
+  (base (getVerbFromMorphs x)) ++ "\t" ++ (intercalate "\t" (map (\z -> getPostpositionalParticle z) y))
+
+extractChunkHasVerb :: [Chunk] -> [String]
+extractChunkHasVerb x = do
+  let hasVerbChunk = filter hasVerb x
+  let chunks = map (\y -> getSrcChunks x y) $ map srcs hasVerbChunk
+  map (\y -> makeVerbPPPair (fst y) (snd y)) $ zip hasVerbChunk chunks
+
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks
+  {--mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks--}
+  mapM_ (\x -> mapM_ putStrLn x) $ map extractChunkHasVerb chunks
