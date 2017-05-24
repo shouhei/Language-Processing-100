@@ -19,6 +19,7 @@ import Data.List
 import qualified Data.List.Split as LS
 import Control.Applicative hiding ((<$>))
 import Data.Maybe
+import Debug.Trace
 
 data Morph = Morph { surface::String, base::String, pos::String, pos1::String} deriving Show
 instance Eq Morph where
@@ -127,9 +128,13 @@ getPostpositionalParticle x = do
   else
     ""
 
+
 makeVerbPPPair :: Chunk -> [Chunk] -> String
 makeVerbPPPair x y = do
-  (base (getVerbFromMorphs x)) ++ "\t" ++ (intercalate "\t" (map (\z -> getPostpositionalParticle z) y))
+  let verb = (base (getVerbFromMorphs x))
+  let pp = (intercalate "\t" (map (\z -> getPostpositionalParticle z) y))
+  let ppChunkStr = (intercalate "\t" (map (\z -> chunkToStr (y !! z)) (srcs x)))
+  verb ++ "\t" ++ pp ++ "\t" ++ ppChunkStr
 
 extractChunkHasVerb :: [Chunk] -> [String]
 extractChunkHasVerb x = do
