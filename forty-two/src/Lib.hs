@@ -96,6 +96,9 @@ hasNoun x = any (\y -> (pos y) == "名詞") (morphs x)
 hasVerb :: Chunk -> Bool
 hasVerb x = any (\y -> (pos y) == "動詞") (morphs x)
 
+hasPostpositionalParticle :: Chunk -> Bool
+hasPostpositionalParticle x = any (\y -> (pos y) == "助詞") (morphs x)
+
 tmp :: Chunk -> [Chunk] -> Maybe String
 tmp x origin
   | (dst x) /= -1 && hasNoun x && hasVerb (origin !! (dst x)) = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
@@ -131,10 +134,13 @@ getPostpositionalParticle x = do
 
 makeVerbPPPair :: Chunk -> [Chunk] -> String
 makeVerbPPPair x y = do
-  let verb = (base (getVerbFromMorphs x))
-  let pp = (intercalate "\t" (map (\z -> getPostpositionalParticle z) y))
-  let ppChunkStr = (intercalate "\t" (map (\z -> chunkToStr (y !! z)) (srcs x)))
-  verb ++ "\t" ++ pp ++ "\t" ++ ppChunkStr
+  let verb = base $ getVerbFromMorphs x
+  let pp = intercalate "\t" $ map getPostpositionalParticle y
+  let ppChunkStr = intercalate "\t" $ map chunkToStr $ filter hasPostpositionalParticle y
+  if pp == "" || pp == "\t" then
+    ""
+  else
+    verb ++ "\t" ++ pp ++ "\t" ++ ppChunkStr
 
 extractChunkHasVerb :: [Chunk] -> [String]
 extractChunkHasVerb x = do
@@ -148,4 +154,4 @@ someFunc = do
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
   {--mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks--}
-  mapM_ (\x -> mapM_ putStrLn x) $ map extractChunkHasVerb chunks
+  mapM_ (\x -> mapM_ putStrLn (filter (\y -> y /= "") x)) $ map extractChunkHasVerb chunks
