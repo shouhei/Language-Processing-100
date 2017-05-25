@@ -117,23 +117,6 @@ isPostpositionalParticle x = pos x == "助詞"
 isWo :: Morph -> Bool
 isWo x = surface x == "を"
 
-tmp :: Chunk -> [Chunk] -> Maybe String
-tmp x origin
-  | (dst x) /= -1 && hasNoun x && hasVerb (origin !! (dst x)) = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
-  | otherwise = Nothing
-
-makeStringNounPertainingVerb :: [Chunk] -> [String]
-makeStringNounPertainingVerb x = ["digraph g{"] ++ (map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp y x) x) ++ ["}"]
-
-tmp' :: Chunk -> [Chunk] -> Maybe String
-tmp' x origin
-  | (dst x) /= -1 && not (null (morphs x)) = Just $ (chunkToStr x) ++ " -> " ++ chunkToStr (origin !! (dst x)) ++ ";"
-  | otherwise = Nothing
-
-makeDiagraph :: [Chunk] -> [String]
-makeDiagraph x = ["digraph g{"] ++ (map (\y -> fromJust y) $ filter (\y -> isJust y) $ map (\y -> tmp' y x) x) ++ ["}"]
-
-
 getSrcChunks :: [Chunk] -> [Int] -> [Chunk]
 getSrcChunks _ [] = []
 getSrcChunks x (y:ys) = x !! y : getSrcChunks x ys
@@ -151,12 +134,12 @@ getPostpositionalParticle x = do
 
 makeVerbPPPair :: Chunk -> [Chunk] -> String
 makeVerbPPPair x y = do
-  let pp = intercalate "\t" $ map getPostpositionalParticle y
-  let ppChunkStr = intercalate "\t" $ map chunkToStr $ filter hasFunctionalVerbSyntax y
-  if pp == "" || pp == "\t" || ppChunkStr == "" then
+  let verb =filter isVerb $ morphs x
+  let fvs = filter hasFunctionalVerbSyntax y
+  if null verb || null fvs then
     ""
   else
-    ppChunkStr ++ chunkToStr x ++ "\t" ++ pp
+    (chunkToStr (last fvs)) ++ (surface (last verb)) ++ "\t" ++(unwords (map (\z -> surface z ++ " ") (map (\z -> last (filter isPostpositionalParticle (morphs z))) $ filter (\z -> z /= (last fvs)) y))) ++ "\t" ++ (unwords (map (\z -> chunkToStr z ++ " ") (filter (\z -> z /= (last fvs)) y)))
 
 hasFunctionalVerbSyntax :: Chunk -> Bool
 hasFunctionalVerbSyntax x = do
@@ -177,5 +160,4 @@ someFunc = do
   text <- readFile "sample.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  {--mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks--}
   mapM_ (\x -> mapM_ putStrLn (filter (\y -> y /= "") x)) $ map extractChunkHasVerb chunks
