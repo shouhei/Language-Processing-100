@@ -91,13 +91,31 @@ makeChunkWithDstStr x = do
   map (\y -> (fst y) ++ "\t" ++(snd y)) $ filter (\y -> (fst y) /= "" && (snd y) /= "") $ zip bases dsts
 
 hasNoun :: Chunk -> Bool
-hasNoun x = any (\y -> (pos y) == "名詞") (morphs x)
+hasNoun x = any isNoun $ morphs x
+
+isNoun :: Morph -> Bool
+isNoun x = pos x == "名詞"
+
+hasSahenSetsuzoku :: Chunk -> Bool
+hasSahenSetsuzoku x = any isSahenSetsuzoku $ morphs x
+
+isSahenSetsuzoku :: Morph -> Bool
+isSahenSetsuzoku x = pos1 x == "サ変接続"
 
 hasVerb :: Chunk -> Bool
-hasVerb x = any (\y -> (pos y) == "動詞") (morphs x)
+hasVerb x = any isVerb $ morphs x
+
+isVerb :: Morph -> Bool
+isVerb x = pos x == "動詞"
 
 hasPostpositionalParticle :: Chunk -> Bool
-hasPostpositionalParticle x = any (\y -> (pos y) == "助詞") (morphs x)
+hasPostpositionalParticle x = any isPostpositionalParticle $ morphs x
+
+isPostpositionalParticle :: Morph -> Bool
+isPostpositionalParticle x = pos x == "助詞"
+
+isWo :: Morph -> Bool
+isWo x = surface x == "を"
 
 tmp :: Chunk -> [Chunk] -> Maybe String
 tmp x origin
@@ -131,16 +149,22 @@ getPostpositionalParticle x = do
   else
     ""
 
-
 makeVerbPPPair :: Chunk -> [Chunk] -> String
 makeVerbPPPair x y = do
-  let verb = base $ getVerbFromMorphs x
   let pp = intercalate "\t" $ map getPostpositionalParticle y
-  let ppChunkStr = intercalate "\t" $ map chunkToStr $ filter hasPostpositionalParticle y
-  if pp == "" || pp == "\t" then
+  let ppChunkStr = intercalate "\t" $ map chunkToStr $ filter hasFunctionalVerbSyntax y
+  if pp == "" || pp == "\t" || ppChunkStr == "" then
     ""
   else
-    verb ++ "\t" ++ pp ++ "\t" ++ ppChunkStr
+    ppChunkStr ++ chunkToStr x ++ "\t" ++ pp
+
+hasFunctionalVerbSyntax :: Chunk -> Bool
+hasFunctionalVerbSyntax x = do
+  let wo = find isWo $ morphs x
+  if wo == Nothing then
+    False
+  else
+    hasSahenSetsuzoku x && hasPostpositionalParticle x
 
 extractChunkHasVerb :: [Chunk] -> [String]
 extractChunkHasVerb x = do
@@ -150,7 +174,7 @@ extractChunkHasVerb x = do
 
 someFunc :: IO ()
 someFunc = do
-  text <- readFile "neko.txt"
+  text <- readFile "sample.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
   {--mapM_ (\x -> mapM_ putStrLn x) $ filter (\x -> length x >= 3) $ map makeDiagraph chunks--}
