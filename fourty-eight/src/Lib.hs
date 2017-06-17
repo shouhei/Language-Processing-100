@@ -135,19 +135,25 @@ getPostpositionalParticle x = do
 chunksToStr :: [Chunk] -> String
 chunksToStr x = unwords $ map chunkToStr x
 
+
+getDstChunksRecursive :: [Chunk] -> Int -> [Chunk]
+getDstChunksRecursive x y
+  | y == -1 = []
+  | otherwise = x !! y : getDstChunksRecursive x (dst (x !! y))
+
 nounToRoot :: [Chunk] -> [String]
 nounToRoot [] = []
 nounToRoot x = do
   let lead = x !! 0
   if hasNoun lead then
-    (chunksToStr ([lead] ++ getSrcChunks x (srcs lead))) : (nounToRoot $ tail x)
+    (chunksToStr ([lead] ++ getDstChunksRecursive x (dst lead))) : (nounToRoot $ tail x)
   else
     nounToRoot $ tail x
 
 
 someFunc :: IO ()
 someFunc = do
-  text <- readFile "neco.txt"
+  text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
   mapM_ (\x -> mapM_ putStrLn x) $ map nounToRoot chunks
