@@ -141,19 +141,19 @@ getDstChunksRecursive x y
   | y == -1 = []
   | otherwise = x !! y : getDstChunksRecursive x (dst (x !! y))
 
-nounToRoot :: [Chunk] -> [String]
-nounToRoot [] = []
-nounToRoot x = do
-  let lead = x !! 0
+nounToRoot :: [Chunk] -> [Chunk]-> [String]
+nounToRoot _ []= []
+nounToRoot origin target = do
+  let lead = head target
   if hasNoun lead then
-    (chunksToStr ([lead] ++ getDstChunksRecursive x (dst lead))) : (nounToRoot $ tail x)
+    (chunksToStr ([lead] ++ getDstChunksRecursive origin (dst lead))) : (nounToRoot origin (tail target))
   else
-    nounToRoot $ tail x
-
+    (nounToRoot origin (tail target))
 
 someFunc :: IO ()
 someFunc = do
   text <- readFile "neko.txt"
   cabocha  <- CaboCha.new ["cabocha", "-f1"]
   chunks <- makeChunks <$> mapM (\x -> CaboCha.parse cabocha x) (lines text)
-  mapM_ (\x -> mapM_ putStrLn x) $ map nounToRoot chunks
+  let strs = map (\x -> nounToRoot x x) chunks
+  mapM_ (\x -> mapM_ putStrLn x) strs
