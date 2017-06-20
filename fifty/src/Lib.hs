@@ -5,6 +5,7 @@ module Lib
 
 import Text.Regex.PCRE.Heavy
 import qualified Data.List as L
+import Debug.Trace
 
 takeThree :: String -> Int -> String
 takeThree txt origin
@@ -14,8 +15,8 @@ takeThree txt origin
 splitText :: String -> [String]
 splitText [] = []
 splitText txt = do
-  let a = L.break (\x -> (takeThree txt x) =~ [re|^(\.|;|:|\?|!)\S[A-Z]$|] ) [2..((length txt) -1)]
-  (take (length (fst a)) txt): splitText (drop (length (fst a)) txt)
+  let a = L.break (\x -> (takeThree txt x) =~ [re|^(\.|;|:|\?|\!)\s[A-Z]$|] ) [2..((length txt) -1)]
+  (take (length (fst a)) txt) : splitText (drop (length (fst a) + 2) txt)
 
 someFunc :: IO ()
 someFunc = do
