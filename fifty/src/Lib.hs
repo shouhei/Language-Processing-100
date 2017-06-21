@@ -16,9 +16,12 @@ splitText :: String -> [String]
 splitText [] = []
 splitText txt = do
   let a = L.break (\x -> (takeThree txt x) =~ [re|^(\.|;|:|\?|\!)\s[A-Z]$|] ) [2..((length txt) -1)]
-  (take (length (fst a)) txt) : splitText (drop (length (fst a) + 2) txt)
+  (init (take (length (fst a)) txt)) : splitText (drop (length (fst a) + 2) txt)
+
+addLn :: [String] -> [String]
+addLn x = x ++ ["\NUL"]
 
 someFunc :: IO ()
 someFunc = do
   txt <- readFile "nlp.txt"
-  mapM_ putStrLn $ splitText txt
+  mapM_ (\t -> mapM_ putStrLn (addLn (words t))) $ splitText txt
