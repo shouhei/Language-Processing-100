@@ -6,6 +6,7 @@ module Lib
 import Text.Regex.PCRE.Heavy
 import qualified Data.List as L
 import Debug.Trace
+import NLP.Snowball
 
 takeThree :: String -> Int -> String
 takeThree txt origin
@@ -21,7 +22,12 @@ splitText txt = do
 addLn :: [String] -> [String]
 addLn x = x ++ ["\NUL"]
 
+strWithStem :: String -> String
+strWithStem x
+  | x == "\NUL" = x
+  | otherwise   = x ++ "\t" ++ (stem English x)
+
 someFunc :: IO ()
 someFunc = do
   txt <- readFile "nlp.txt"
-  mapM_ (\t -> mapM_ putStrLn (addLn (words t))) $ splitText txt
+  mapM_ (\t -> mapM_ (\x -> putStrLn (strWithStem x)) (addLn (words t))) $ splitText txt
