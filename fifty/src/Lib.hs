@@ -5,8 +5,7 @@ module Lib
 
 import Text.Regex.PCRE.Heavy
 import qualified Data.List as L
-import Debug.Trace
-import NLP.Snowball
+import NLP.Stemmer
 
 takeThree :: String -> Int -> String
 takeThree txt origin
