@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <greeting>
+    <language>English</language>
+    <message>hello</message>
+  </greeting>
+  <greeting>
+    <language>French</language>
+    <message>bonjour</message>
+  </greeting>
+  <greeting>
+    <language>Italian</language>
+    <message>ciao</message>
+  </greeting>
+  <greeting>
+    <language>Chinese</language>
+    <message>nihao</message>
+  </greeting>
+</root>
